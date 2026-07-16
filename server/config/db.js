@@ -3,15 +3,28 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS !== undefined ? process.env.DB_PASS : '',
-  database: process.env.DB_NAME || 'campusbites_db',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-});
+let pool;
+
+if (process.env.DATABASE_URL) {
+  // Use connection string (standard for Railway, Render, Aiven, etc.)
+  pool = mysql.createPool({
+    uri: process.env.DATABASE_URL,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+} else {
+  // Use separate config variables (standard for localhost development)
+  pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS !== undefined ? process.env.DB_PASS : '',
+    database: process.env.DB_NAME || 'campusbites_db',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+}
 
 // Test connection on startup
 async function testConnection() {
